@@ -47,7 +47,7 @@ class LoremIpsumAPI(ShipwireBaseAPI):
         """
         Returns stocking information for a given product.
         """
-        if BS_PRODUCT_DATABASE.has_key("product_sku"):
-            return BS_PRODUCT_DATABASE["product_sku"]["stock_info"],
+        if BS_PRODUCT_DATABASE.has_key(product_sku):
+            return BS_PRODUCT_DATABASE[product_sku]["stock_info"]
         else:
             return None

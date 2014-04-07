@@ -37,7 +37,7 @@ class ShipwireBaseAPI(object):
     Base class for to be used for ShipwireAPI and TestAPI.
     """
     
-    def __init__(self, account_email, password, server):
+    def __init__(self, account_email, password, server):,
         """
         Arguments 'account_email' and 'password' correspond to the
         shipwire account.  Argument 'server' must be one of

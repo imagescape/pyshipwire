@@ -34,14 +34,21 @@ class LoremIpsumAPI(ShipwireBaseAPI):
     used for testing purposes, without ever touching the shipwire backend.
     """
 
-    def __init__(self, account_email=None, password=None, server=None):
+    def __init__(self, account_email, password, server):
         """
-        All arguments are optional in this case, because they are not used
-        for anything.
+        Arguments 'account_email' and 'password' correspond to the
+        shipwire account.  Argument 'server' must be one of
+        "production", or "test".  Both correspond to Shipwire's actual
+        API.
         """
-        # FIXME: still require some authentication credentials so that
-        # a connection failure can be demonstrated.
-        pass
+
+        if server not in ["test", "production"]:
+            raise ValueError("Bad target server.")
+
+        if not (account_email == "test_account" \
+                and password == "test_password" \
+                and server == "test"):
+            raise NotImplementedError("Fake failure for fake auth.")
     
     def inventory_lookup(self, product_sku, estimate_ok=None):
         """

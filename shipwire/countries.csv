@@ -1,0 +1,248 @@
+Afghanistan,AF,AFG
+Albania,AL,ALB
+Antarctica,AQ,ATA
+Algeria,DZ,DZA
+"American Samoa",AS,ASM
+Andorra,AD,AND
+Angola,AO,AGO
+"Antigua and Barbuda",AG,ATG
+Azerbaijan,AZ,AZE
+Argentina,AR,ARG
+Australia,AU,AUS
+Austria,AT,AUT
+Bahamas,BS,BHS
+Bahrain,BH,BHR
+Bangladesh,BD,BGD
+Armenia,AM,ARM
+Barbados,BB,BRB
+Belgium,BE,BEL
+Bermuda,BM,BMU
+Bhutan,BT,BTN
+"Bolivia, Plurinational State of",BO,BOL
+"Bosnia and Herzegovina",BA,BIH
+Botswana,BW,BWA
+"Bouvet Island",BV,BVT
+Brazil,BR,BRA
+Belize,BZ,BLZ
+"British Indian Ocean Territory",IO,IOT
+"Solomon Islands",SB,SLB
+"Virgin Islands, British",VG,VGB
+"Brunei Darussalam",BN,BRN
+Bulgaria,BG,BGR
+Myanmar,MM,MMR
+Burundi,BI,BDI
+Belarus,BY,BLR
+Cambodia,KH,KHM
+Cameroon,CM,CMR
+Canada,CA,CAN
+"Cape Verde",CV,CPV
+"Cayman Islands",KY,CYM
+"Central African Republic",CF,CAF
+"Sri Lanka",LK,LKA
+Chad,TD,TCD
+Chile,CL,CHL
+China,CN,CHN
+"Taiwan, Province of China",TW,TWN
+"Christmas Island",CX,CXR
+"Cocos (Keeling) Islands",CC,CCK
+Colombia,CO,COL
+Comoros,KM,COM
+Mayotte,YT,MYT
+Congo,CG,COG
+"Congo, the Democratic Republic of the",CD,COD
+"Cook Islands",CK,COK
+"Costa Rica",CR,CRI
+Croatia,HR,HRV
+Cuba,CU,CUB
+Cyprus,CY,CYP
+"Czech Republic",CZ,CZE
+Benin,BJ,BEN
+Denmark,DK,DNK
+Dominica,DM,DMA
+"Dominican Republic",DO,DOM
+Ecuador,EC,ECU
+"El Salvador",SV,SLV
+"Equatorial Guinea",GQ,GNQ
+Ethiopia,ET,ETH
+Eritrea,ER,ERI
+Estonia,EE,EST
+"Faroe Islands",FO,FRO
+"Falkland Islands (Malvinas)",FK,FLK
+"South Georgia and the South Sandwich Islands",GS,SGS
+Fiji,FJ,FJI
+Finland,FI,FIN
+"Åland Islands",AX,ALA
+France,FR,FRA
+"French Guiana",GF,GUF
+"French Polynesia",PF,PYF
+"French Southern Territories",TF,ATF
+Djibouti,DJ,DJI
+Gabon,GA,GAB
+Georgia,GE,GEO
+Gambia,GM,GMB
+"Palestinian Territory, Occupied",PS,PSE
+Germany,DE,DEU
+Ghana,GH,GHA
+Gibraltar,GI,GIB
+Kiribati,KI,KIR
+Greece,GR,GRC
+Greenland,GL,GRL
+Grenada,GD,GRD
+Guadeloupe,GP,GLP
+Guam,GU,GUM
+Guatemala,GT,GTM
+Guinea,GN,GIN
+Guyana,GY,GUY
+Haiti,HT,HTI
+"Heard Island and McDonald Islands",HM,HMD
+"Holy See (Vatican City State)",VA,VAT
+Honduras,HN,HND
+"Hong Kong",HK,HKG
+Hungary,HU,HUN
+Iceland,IS,ISL
+India,IN,IND
+Indonesia,ID,IDN
+"Iran, Islamic Republic of",IR,IRN
+Iraq,IQ,IRQ
+Ireland,IE,IRL
+Israel,IL,ISR
+Italy,IT,ITA
+"Côte d'Ivoire",CI,CIV
+Jamaica,JM,JAM
+Japan,JP,JPN
+Kazakhstan,KZ,KAZ
+Jordan,JO,JOR
+Kenya,KE,KEN
+"Korea, Democratic People's Republic of",KP,PRK
+"Korea, Republic of",KR,KOR
+Kuwait,KW,KWT
+Kyrgyzstan,KG,KGZ
+"Lao People's Democratic Republic",LA,LAO
+Lebanon,LB,LBN
+Lesotho,LS,LSO
+Latvia,LV,LVA
+Liberia,LR,LBR
+Libya,LY,LBY
+Liechtenstein,LI,LIE
+Lithuania,LT,LTU
+Luxembourg,LU,LUX
+Macau,MO,MAC
+Madagascar,MG,MDG
+Malawi,MW,MWI
+Malaysia,MY,MYS
+Maldives,MV,MDV
+Mali,ML,MLI
+Malta,MT,MLT
+Martinique,MQ,MTQ
+Mauritania,MR,MRT
+Mauritius,MU,MUS
+Mexico,MX,MEX
+Monaco,MC,MCO
+Mongolia,MN,MNG
+"Moldovoa, Republic of",MD,MDA
+Montenegro,ME,MNE
+Montserrat,MS,MSR
+Morocco,MA,MAR
+Mozambique,MZ,MOZ
+Oman,OM,OMN
+Namibia,NA,NAM
+Nauru,NR,NRU
+Nepal,NP,NPL
+Netherlands,NL,NLD
+Curaçao,CW,CUW
+Aruba,AW,ABW
+"Sint Maarten",SX,SXM
+"Bonaire, Saint Eustatius and Saba",BQ,BES
+"New Caledonia",NC,NCL
+Vanuatu,VU,VUT
+"New Zealand",NZ,NZL
+Nicaragua,NI,NIC
+Niger,NE,NER
+Nigeria,NG,NGA
+Niue,NU,NIU
+"Norfolk Island",NF,NFK
+Norway,NO,NOR
+"Northern Mariana Islands",MP,MNP
+"United States Minor Outlying Islands",UM,UMI
+"Micronesia, Federated States of",FM,FSM
+"Marshall Islands",MH,MHL
+Palau,PW,PLW
+Pakistan,PK,PAK
+Panama,PA,PAN
+"Papua New Guinea",PG,PNG
+Paraguay,PY,PRY
+Peru,PE,PER
+Philippines,PH,PHL
+Pitcairn,PN,PCN
+Poland,PL,POL
+Portugal,PT,PRT
+Guinea-Bissau,GW,GNB
+Timor-Leste,TL,TLS
+"Puerto Rico",PR,PRI
+Qatar,QA,QAT
+Réunion,RE,REU
+Romania,RO,ROU
+"Russian Federation",RU,RUS
+Rwanda,RW,RWA
+"Saint Barthélemy",BL,BLM
+"Saint Helena, Ascension and Tristan da Cunha",SH,SHN
+"Saint Kitts and Nevis",KN,KNA
+Anguilla,AI,AIA
+"Saint Lucia",LC,LCA
+"Saint Martin (French part)",MF,MAF
+"Saint Pierre and Miquelon",PM,SPM
+"Saint Vincent and the Grenadines",VC,VCT
+"San Marino",SM,SMR
+"Sao Tome and Principe",ST,STP
+"Saudi Arabia",SA,SAU
+Senegal,SN,SEN
+Serbia,RS,SRB
+Seychelles,SC,SYC
+"Sierra Leone",SL,SLE
+Singapore,SG,SGP
+Slovakia,SK,SVK
+"Viet Nam",VN,VNM
+Slovenia,SI,SVN
+Somalia,SO,SOM
+"South Africa",ZA,ZAF
+Zimbabwe,ZW,ZWE
+Spain,ES,ESP
+"Western Sahara",EH,ESH
+Sudan,SD,SDN
+Suriname,SR,SUR
+"Svalbard and Jan Mayen",SJ,SJM
+Swaziland,SZ,SWZ
+Sweden,SE,SWE
+Switzerland,CH,CHE
+"Syrian Arab Republic",SY,SYR
+Tajikistan,TJ,TJK
+Thailand,TH,THA
+Togo,TG,TGO
+Tokelau,TK,TKL
+Tonga,TO,TON
+"Trinidad and Tobago",TT,TTO
+"United Arab Emirates",AE,ARE
+Tunisia,TN,TUN
+Turkey,TR,TUR
+Turkmenistan,TM,TKM
+"Turks and Caicos Islands",TC,TCA
+Tuvalu,TV,TUV
+Uganda,UG,UGA
+Ukraine,UA,UKR
+Macedonia,MK,MKD
+Egypt,EG,EGY
+"United Kingdom",GB,GBR
+Guernsey,GG,GGY
+Jersey,JE,JEY
+"Isle of Man",IM,IMN
+"Tanzania, United Republic of",TZ,TZA
+"United States",US,USA
+"Virgin Islands, U.S.",VI,VIR
+"Burkina Faso",BF,BFA
+Uruguay,UY,URY
+Uzbekistan,UZ,UZB
+"Venezuela, Bolivarian Republic of",VE,VEN
+"Wallis and Futuna",WF,WLF
+Samoa,WS,WSM
+Yemen,YE,YEM
+Zambia,ZM,ZMB

@@ -1,5 +1,7 @@
 
+import os
 import time
+import csv
 import itertools
 
 WAREHOUSES = {
@@ -39,6 +41,56 @@ SHIPPING = {
     "PL-INTL" : "International Plus Shipping",
     "PM-INTL" : "International Premium Shipping",
 }
+
+LOCAL_SHIPPING = ("GD", "2D", "1D")
+INTL_SHIPPING = ("E-INTL", "INTL", "PL-INTL", "PM-INTL")
+
+
+
+countries_path = os.path.join(os.path.split(__file__)[0], "countries.csv")
+with open(countries_path, "r") as countries_file:
+    COUNTRIES = tuple([tuple(line) for line in csv.reader(countries_file)])
+del countries_path
+del countries_file
+
+
+def iso_for_country(country):
+    """
+    Determines the 3 letter iso code for a given country name which may
+    be formatted as either an iso code (2 or 3 letters) or the common
+    name.
+    """
+    for line in COUNTRIES:
+        normalized_line = [i.upper() for i in line]
+        normalized_target = country.upper().replace("_", " ")
+        if normalized_line.count(normalized_target):
+            return line[-1]
+    return None
+
+
+def country_for_warehouse(warehouse_code):
+    """
+    Returns the 3 letter iso country code for which a given warehouse
+    is located.
+    """
+    for country_name, country_set in WAREHOUSES.items():
+        if country_set.has_key(warehouse_code):
+            return iso_for_country(country_name)
+    return None
+
+
+def is_domestic(shipping_address, warehouse_code):
+    """
+    Returns true if a shipping address and warehouse are in the same
+    country as one another, otherwise returns False.
+    """
+    shipping_country = iso_for_country(shipping_address.country)
+    warehouse_country = country_for_warehouse(warehouse_code)
+    if shipping_country is not None and warehouse_country is not None:
+        return shipping_country == warehouse_country
+    else:
+        # FIXME: maybe raise an error here?
+        return False
 
 
 class AddressInfo(object):

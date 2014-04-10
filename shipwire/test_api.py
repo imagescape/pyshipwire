@@ -15,7 +15,7 @@ BS_PRODUCT_DATABASE = {
         "stock_info" : {
             "PHL" : 2,
             "UK" : 1,
-        },
+        }
     },
     "sku_0003" : {
         "name" : "Premium Widget MX PRO",
@@ -24,6 +24,18 @@ BS_PRODUCT_DATABASE = {
             "UK" : 2,
         },
     },
+}
+
+
+TEST_RATES = {
+    # arbitrary shipping rates
+    "GD" : 5.0,
+    "2D" : 10.0,
+    "1D" : 30.0,
+    "E-INTL" : 50.0,
+    "INTL"   : 80.0,
+    "PL-INTL" : 100.0,
+    "PM-INTL" : 120.0,
 }
 
 
@@ -72,3 +84,32 @@ class LoremIpsumAPI(ShipwireBaseAPI):
                 return None
         else:
             return None
+
+    def get_shipping_options(self, ship_address, warehouse, cart):
+        """
+        The parameter 'cart' is a list of product SKUs; multiple quantites
+        should be expressed by the SKU appearing in the list multiple
+        times.
+
+        This function may need to be called multiple times in the
+        event that the order is split.
+        """
+        
+        rate_set = LOCAL_SHIPPING
+        if not is_domestic(ship_address, warehouse):
+            rate_set = INTL_SHIPPING
+        options = {}
+        for code in rate_set:
+            options[code] = SHIPPING[code], TEST_RATES[code] * len(cart)
+        return options
+        
+    def place_order(self, shipping_address, warehouse, cart, shipping_method):
+        """
+        The parameter 'cart' is a list of product SKUs; multiple quantites
+        should be expressed by the SKU appearing in the list multiple
+        times.
+        
+        This function may need to be called multiple times in the
+        event that the order is split.
+        """
+        raise NotImplementedError("Fake Order Placement")

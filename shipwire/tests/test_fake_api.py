@@ -1,5 +1,7 @@
 
 
+import time
+
 from shipwire.test_api import *
 from shipwire.common import *
 
@@ -57,4 +59,28 @@ def test_cache_invalidation():
     """
     Tests caching for inventory lookups.
     """
-    raise NotImplementedError("Cache invalidation test.")
+    
+    api = LoremIpsumAPI("test_account", "test_password", "test")
+    db = BS_PRODUCT_DATABASE
+    sku = "sku_0001"
+    db_record = db[sku]
+
+    first = api.inventory_lookup(sku)["CHI"].quantity
+    assert first == 10
+
+    db_record["stock_info"]["CHI"] = 9
+
+    second = api.inventory_lookup(sku)["CHI"].quantity
+    assert second == 9
+
+    db_record["stock_info"]["CHI"] = 3
+
+    third = api.inventory_lookup(sku, True)["CHI"].quantity
+    assert third == 9
+
+    api.cache_expire = 0
+    fourth = api.inventory_lookup(sku, True)["CHI"].quantity
+    assert fourth == 3
+    
+    
+    

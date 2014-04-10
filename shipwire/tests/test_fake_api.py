@@ -82,5 +82,64 @@ def test_cache_invalidation():
     fourth = api.inventory_lookup(sku, True)["CHI"].quantity
     assert fourth == 3
     
+
+def test_get_shipping_options():
+    """
+    Test the get_shipping_options method.
+    """
+    api = LoremIpsumAPI("test_account", "test_password", "test")
+    cart = ["sku_0002", "sku_0002", "sku_0003"]
+    addr = AddressInfo(
+        "Some Body",
+        "12345 S Someplace Rd",
+        "",
+        "Duster",
+        "IN",
+        "United States",
+        "47999",
+        "123-4567",
+        "nobody@donotreply.pleasedonotregisterthistld",
+    )
+
+    opts = api.get_shipping_options(addr, "PHL", cart)
+
+    for local_method in LOCAL_SHIPPING:
+        assert opts.has_key(local_method)
+    for intl_method in INTL_SHIPPING:
+        assert not opts.has_key(intl_method)
+    for value in opts.values():
+        assert type(value[0]) == str
+        assert type(value[1]) == float
     
+    opts = api.get_shipping_options(addr, "UK", cart)
     
+    for local_method in LOCAL_SHIPPING:
+        assert not opts.has_key(local_method)
+    for intl_method in INTL_SHIPPING:
+        assert opts.has_key(intl_method)
+    for value in opts.values():
+        assert type(value[0]) == str
+        assert type(value[1]) == float
+
+
+def test_place_order():
+    """
+    Test the mechanism for placing fake orders.
+    """
+
+    api = LoremIpsumAPI("test_account", "test_password", "test")
+    db = BS_PRODUCT_DATABASE
+    cart = ["sku_0002", "sku_0002", "sku_0003"]
+    warehouse = "PHL"
+    addr = AddressInfo(
+        "Some Body",
+        "12345 S Someplace Rd",
+        "",
+        "Duster",
+        "IN",
+        "United States",
+        "47999",
+        "123-4567",
+        "nobody@donotreply.pleasedonotregisterthistld",
+    )
+    acknowledgement = api.place_order(addr, warehouse, cart, "GD")

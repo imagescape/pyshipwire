@@ -1,6 +1,7 @@
 
 
 from shipwire.test_api import *
+from shipwire.common import *
 
 
 def test_fake_api_auth():
@@ -28,21 +29,32 @@ def test_fake_api_auth():
     assert fails == 3
 
 
-def test_bs_api():
+def test_bs_inventory_lookup():
     """
-    Tests to the LoremIpsumAPI.inventory_lookup call for correctness.
+    Tests the inventory_for_warehouse call by calling
+    inventory_lookup.
     """
+    
     api = LoremIpsumAPI("test_account", "test_password", "test")
     db = BS_PRODUCT_DATABASE
 
-    should_be_none = api.inventory_lookup("fake_sku")
-    assert should_be_none is None
+    for sku in db.keys():
+        stock_info = db[sku]["stock_info"]
+        inventory = api.inventory_lookup(sku)
+        for code in WAREHOUSE_CODES:
+            if stock_info.has_key(code):
+                assert inventory[code] is not None
+                assert inventory[code].code == sku # this is not confusing at all nope
+                assert inventory[code].quantity == stock_info[code]
+            else:
+                assert inventory[code] is None
 
-    for product_sku in db.keys():
-        inventory = api.inventory_lookup(product_sku)
-        assert inventory is not None
+    for value in api.inventory_lookup("fake_sku").values():
+        assert value is None
 
-        if product_sku == "003":
-            assert inventory.keys.count("Philadelphia")
-            assert inventory.keys.count("London")
-            assert inventory["London"] == 2
+    
+def test_cache_invalidation():
+    """
+    Tests caching for inventory lookups.
+    """
+    raise NotImplementedError("Cache invalidation test.")

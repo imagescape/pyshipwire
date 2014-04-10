@@ -7,22 +7,22 @@ BS_PRODUCT_DATABASE = {
     "sku_0001" : {
         "name" : "Basic Widget",
         "stock_info" : {
-            "Chicago" : 10,
-            "London" : 1,
+            "CHI" : 10,
+            "UK" : 1,
         },
     },
     "sku_0002" : {
         "name" : "Deluxe Widget",
         "stock_info" : {
-            "Philadelphia" : 2,
-            "London" : 1,
+            "PHL" : 2,
+            "UK" : 1,
         },
     },
     "sku_0003" : {
         "name" : "Premium Widget MX PRO",
         "stock_info" : {
-            "Philadelphia" : 1,
-            "London" : 2,
+            "PHL" : 1,
+            "UK" : 2,
         },
     },
 }
@@ -41,6 +41,7 @@ class LoremIpsumAPI(ShipwireBaseAPI):
         "production", or "test".  Both correspond to Shipwire's actual
         API.
         """
+        ShipwireBaseAPI.__init__(self, account_email, password, server)
 
         if server not in ["test", "production"]:
             raise ValueError("Bad target server.")
@@ -49,12 +50,26 @@ class LoremIpsumAPI(ShipwireBaseAPI):
                 and password == "test_password" \
                 and server == "test"):
             raise NotImplementedError("Fake failure for fake auth.")
-    
-    def inventory_lookup(self, product_sku, estimate_ok=None):
+
+    def inventory_for_warehouse(self, product_sku, warehouse):
         """
-        Returns stocking information for a given product.
+        Polls the stocking information for a given warehouse.  The method
+        "inventory_lookup" calls this method to build a better report,
+        so use that instead.
         """
         if BS_PRODUCT_DATABASE.has_key(product_sku):
-            return BS_PRODUCT_DATABASE[product_sku]["stock_info"]
+            record = BS_PRODUCT_DATABASE[product_sku]
+            try:
+                stock = record["stock_info"][warehouse]
+            except KeyError:
+                stock = 0
+            
+            if stock:
+                data = Inventory()
+                data.code = product_sku # not sure if this is correct
+                data.quantity = stock
+                return data
+            else:
+                return None
         else:
             return None

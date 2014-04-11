@@ -88,7 +88,7 @@ def test_get_shipping_options():
     Test the get_shipping_options method.
     """
     api = LoremIpsumAPI("test_account", "test_password", "test")
-    cart = ["sku_0002", "sku_0002", "sku_0003"]
+    cart = CartItems(["sku_0002", "sku_0002", "sku_0003"])
     addr = AddressInfo(
         "Some Body",
         "12345 S Someplace Rd",
@@ -126,7 +126,7 @@ def test_place_order():
 
     api = LoremIpsumAPI("test_account", "test_password", "test")
     db = BS_PRODUCT_DATABASE
-    cart = ["sku_0002", "sku_0002", "sku_0003"]
+    cart = CartItems(["sku_0002", "sku_0002", "sku_0003"])
     warehouse = "PHL"
     addr = AddressInfo(
         "Some Body",
@@ -142,3 +142,34 @@ def test_place_order():
     split_cart = SplitCart()
     split_cart.add_cart(warehouse, cart)
     acknowledgement = api.place_order(addr, split_cart, {warehouse:"GD"})
+
+
+def test_order_splitting():
+    """
+    Test the mechanism for splitting a cart into separate orders.
+    """
+
+    api = LoremIpsumAPI("test_account", "test_password", "test")
+    db = BS_PRODUCT_DATABASE
+
+    addr = AddressInfo(
+        "Some Body",
+        "12345 S Someplace Rd",
+        "",
+        "Duster",
+        "IN",
+        "United States",
+        "47999",
+        "123-4567",
+        "nobody@donotreply.pleasedonotregisterthistld",
+    )
+    
+    cart = CartItems(db.keys())
+    split_cart = api.optimal_order_splitting(addr, cart)
+
+    split = split_cart.order_split
+    assert split.has_key("CHI")
+    assert split.has_key("PHL")
+    assert split.has_key("TOR")
+    assert split.has_key("UK") == False
+

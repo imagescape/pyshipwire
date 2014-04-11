@@ -24,6 +24,12 @@ BS_PRODUCT_DATABASE = {
             "UK" : 2,
         },
     },
+    "sku_0004" : {
+        "name" : "Super Deluxe Premium Widget MX PRO MX",
+        "stock_info" : {
+            "TOR" : 1,
+        },
+    },
 }
 
 
@@ -96,7 +102,7 @@ class LoremIpsumAPI(ShipwireBaseAPI):
         Places an order for a given warehouse and cart of items.  Generally
         better to call this indirectly via the "place_order" method.
         """
-        raise NotImplementedError("Place fake order for single cart.")
+        return True
 
     def _get_single_cart_quotes(self, ship_address, warehouse, cart):
         """
@@ -111,5 +117,5 @@ class LoremIpsumAPI(ShipwireBaseAPI):
             rate_set = INTL_SHIPPING
         options = {}
         for code in rate_set:
-            options[code] = SHIPPING[code], TEST_RATES[code] * len(cart)
+            options[code] = SHIPPING[code], TEST_RATES[code] * len(cart.sku_list)
         return options

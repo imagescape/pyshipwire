@@ -140,6 +140,7 @@ class SplitCart(object):
         self.order_split = {}
 
     def add_cart(self, warehouse, cart):
+        assert type(cart) == CartItems
         assert warehouse in WAREHOUSE_CODES
         self.order_split[warehouse] = cart
 

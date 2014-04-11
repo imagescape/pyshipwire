@@ -217,6 +217,33 @@ class ShipwireBaseAPI(object):
         Quantities should be expressed by having the SKU appear in the
         list multiple times.
         """
+        
+        # The way this should work:
+
+        # 1. Generate a subset of warehouses that are domestic to the
+        # shipping address.
+
+        ## a. for each warehouse in the subset, for each unique sku in
+        ## the cart, poll the availability of the items in the
+        ## domestic warehouse set.
+
+        ## b. determine which warehouse is able to provide the most of
+        ## the items in the cart.  Place those into a new cart (tagged
+        ## with the warehouse), subtract the quantities from the
+        ## cached inventory results for that warehouse.  Remove the
+        ## warehouse from the cached inventory results.  Repeat until
+        ## no items remaining in the cart can be satisfied by any of
+        ## the warehouses OR until there are no items remaining in the
+        ## cart.
+
+        # 2. Generate a subset of warehouses that are not domestic to the
+        # shipping address.
+
+        ## a. use the algorithm described for step 1, but with
+        ## warehouses that are relatively international to the
+        ## shipping address.
+        
+
         raise NotImplementedError("Order Splitting")
 
     def get_shipping_options(self, shipping_address, split_cart):

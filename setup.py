@@ -11,4 +11,5 @@ setup(name="pyshipwire",
       zip_safe=False,
 
       install_requires = [
+          "requests",
         ])

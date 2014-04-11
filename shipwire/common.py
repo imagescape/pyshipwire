@@ -118,6 +118,32 @@ class Inventory(object):
         self.quantity = 0
 
 
+class CartItems(object):
+    """
+    Class storing shopping cart information.
+    """
+    def __init__(self, sku_list=None):
+        if sku_list is not None:
+            self.sku_list = sku_list
+
+    def add_item(self, sku, quantity):
+        """Add some quantity of SKUs to the cart."""
+        for i in range(quantity):
+            self.sku_list.append(sku)
+
+
+class SplitCart(object):
+    """
+    Class representing an order split.
+    """
+    def __init__(self):
+        self.order_split = {}
+
+    def add_cart(self, warehouse, cart):
+        assert warehouse in WAREHOUSE_CODES
+        self.order_split[warehouse] = cart
+
+
 class ShipwireBaseAPI(object):
     """
     Base class for to be used for ShipwireAPI and TestAPI.
@@ -172,13 +198,13 @@ class ShipwireBaseAPI(object):
         if cached and estimate_ok:
             return cached
         else:
-            inventory = [self.inventory_for_warehouse(product_sku, w) \
+            inventory = [self._inventory_for_warehouse(product_sku, w) \
                          for w in WAREHOUSE_CODES]
             result = dict(zip(WAREHOUSE_CODES, inventory))
             self.__set_cached(product_sku, result)
             return result
 
-    def optimal_order_splitting(self, ship_address, cart):
+    def optimal_order_splitting(self, shipping_address, cart):
         """
         Returns a list of cart objects for the most pratical split for
         situations when the order cannot be fulfilled from just one
@@ -192,10 +218,59 @@ class ShipwireBaseAPI(object):
         """
         raise NotImplementedError("Order Splitting")
 
+    def get_shipping_options(self, shipping_address, split_cart):
+        """
+        The parameter 'cart' is an instance of the SplitCart class.
+        
+        Returns a dictionary in which the keys are warehouse codes,
+        and the values are the shipping quotes for the carts
+        corresponding to that warehouse.
+
+        Use the "optimal_order_splitting" method to generate
+        'split_cart'.
+        """
+        assert type(shipping_address) == AddressInfo
+        assert type(split_cart) == SplitCart
+
+        split_options = {}
+        for warehouse, cart in split_cart.order_split.items():
+            split_options[warehouse] = self._get_single_cart_quotes(
+                shipping_address, warehouse, cart)
+        return split_options
+        
+    def place_order(self, shipping_address, split_cart, shipping_methods):
+        """
+        The parameter 'cart' is an instance of the SplitCart class.
+
+        The parameter 'shipping_methods' is a dict who's keys are
+        warehouse codes and who's values are shipping codes.
+
+        Raises an error if any of the orders failed to place, so be
+        sure to catch for that.
+
+        Use the "optimal_order_splitting" method to generate
+        'split_cart'.
+        """
+        assert type(shipping_address) == AddressInfo
+        assert type(split_cart) == SplitCart
+        assert type(shipping_methods) is dict
+        for warehouse, shipping in shipping_methods.items():
+            assert warehouse in WAREHOUSE_CODES
+            assert shipping in SHIPPING.keys()
+
+        api_results = []
+
+        for warehouse, cart in split_cart.order_split.items():
+            method = shipping_methods[warehouse]
+            api_results.append(
+                self._place_single_cart_order(
+                    shipping_address, warehouse, cart, method))
+        return api_results
+
     #------------------------------------------------------------------
     # Backend-specific methods:
 
-    def inventory_for_warehouse(self, product_sku, warehouse):
+    def _inventory_for_warehouse(self, product_sku, warehouse):
         """Shipwire's api doesn't say the per-warehouse stocking information
         if you query per product.  The solution is to query it for
         each warehouse.  Use the "inventory_lookup" for this data in
@@ -204,24 +279,15 @@ class ShipwireBaseAPI(object):
         raise NotImplementedError("Inventory Lookup")
         pass
 
-    def get_shipping_options(self, ship_address, warehouse, cart):
+    def _get_single_cart_quotes(self, ship_address, warehouse, cart):
         """
-        The parameter 'cart' is a list of product SKUs; multiple quantites
-        should be expressed by the SKU appearing in the list multiple
-        times.
+        Returns the shipping quotes for a given cart of items and warehouse.
+        """
+        raise NotImplementedError("Shipping quotes for singular cart.")
 
-        This function may need to be called multiple times in the
-        event that the order is split.
+    def _place_single_cart_order(self, ship_address, warehouse, cart, ship_method):
         """
-        raise NotImplementedError("Get Shipping Options")
-
-    def place_order(self, ship_address, warehouse, cart, shipping_method):
+        Places an order for a given warehouse and cart of items.  Generally
+        better to call this indirectly via the "place_order" method.
         """
-        The parameter 'cart' is a list of product SKUs; multiple quantites
-        should be expressed by the SKU appearing in the list multiple
-        times.
-        
-        This function may need to be called multiple times in the
-        event that the order is split.
-        """
-        raise NotImplementedError("Order Placement")
+        raise NotImplementedError("Place order for single cart.")

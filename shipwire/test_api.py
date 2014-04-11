@@ -62,8 +62,11 @@ class LoremIpsumAPI(ShipwireBaseAPI):
                 and server == "test"):
             raise NotImplementedError("Fake failure for fake auth.")
 
-    def inventory_for_warehouse(self, product_sku, warehouse):
+    def _inventory_for_warehouse(self, product_sku, warehouse):
         """
+        Don't call this method directly; use
+        inventory_lookup(product_skup, caching) instead!
+
         Polls the stocking information for a given warehouse.  The method
         "inventory_lookup" calls this method to build a better report,
         so use that instead.
@@ -85,16 +88,24 @@ class LoremIpsumAPI(ShipwireBaseAPI):
         else:
             return None
 
-    def get_shipping_options(self, ship_address, warehouse, cart):
+    def _place_single_cart_order(self, ship_address, warehouse, cart, ship_method):
         """
-        The parameter 'cart' is a list of product SKUs; multiple quantites
-        should be expressed by the SKU appearing in the list multiple
-        times.
+        Don't call this method directly; use
+        place_order(shipping_address, split_cart) instead!
 
-        This function may need to be called multiple times in the
-        event that the order is split.
+        Places an order for a given warehouse and cart of items.  Generally
+        better to call this indirectly via the "place_order" method.
         """
-        
+        raise NotImplementedError("Place fake order for single cart.")
+
+    def _get_single_cart_quotes(self, ship_address, warehouse, cart):
+        """
+        Don't call this method directy; use
+        get_shipping_options(ship_address, split_cart) instead!
+
+        This function fetches shipping quotes for a given warehouse
+        and cart of itmes.
+        """
         rate_set = LOCAL_SHIPPING
         if not is_domestic(ship_address, warehouse):
             rate_set = INTL_SHIPPING
@@ -102,15 +113,3 @@ class LoremIpsumAPI(ShipwireBaseAPI):
         for code in rate_set:
             options[code] = SHIPPING[code], TEST_RATES[code] * len(cart)
         return options
-        
-    def place_order(self, shipping_address, warehouse, cart, shipping_method):
-        """
-        The parameter 'cart' is a list of product SKUs; multiple quantites
-        should be expressed by the SKU appearing in the list multiple
-        times.
-        
-        This function may need to be called multiple times in the
-        event that the order is split.
-        """
-
-        raise NotImplementedError("Fake Order Placement")

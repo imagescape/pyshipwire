@@ -101,26 +101,23 @@ def test_get_shipping_options():
         "nobody@donotreply.pleasedonotregisterthistld",
     )
 
-    opts = api.get_shipping_options(addr, "PHL", cart)
-
-    for local_method in LOCAL_SHIPPING:
-        assert opts.has_key(local_method)
-    for intl_method in INTL_SHIPPING:
-        assert not opts.has_key(intl_method)
-    for value in opts.values():
-        assert type(value[0]) == str
-        assert type(value[1]) == float
-    
-    opts = api.get_shipping_options(addr, "UK", cart)
+    split_cart = SplitCart()
+    split_cart.add_cart("PHL", cart)
+    split_cart.add_cart("UK", cart)
+    opts = api.get_shipping_options(addr, split_cart)
     
     for local_method in LOCAL_SHIPPING:
-        assert not opts.has_key(local_method)
+        assert opts["PHL"].has_key(local_method)
+        assert not opts["UK"].has_key(local_method)
     for intl_method in INTL_SHIPPING:
-        assert opts.has_key(intl_method)
-    for value in opts.values():
-        assert type(value[0]) == str
-        assert type(value[1]) == float
+        assert opts["UK"].has_key(intl_method)
+        assert not opts["PHL"].has_key(intl_method)
 
+    for split_opt in opts.values():
+        for value in split_opt.values():
+            assert type(value[0]) == str
+            assert type(value[1]) == float
+    
 
 def test_place_order():
     """
@@ -142,4 +139,6 @@ def test_place_order():
         "123-4567",
         "nobody@donotreply.pleasedonotregisterthistld",
     )
-    acknowledgement = api.place_order(addr, warehouse, cart, "GD")
+    split_cart = SplitCart()
+    split_cart.add_cart(warehouse, cart)
+    acknowledgement = api.place_order(addr, split_cart, {warehouse:"GD"})

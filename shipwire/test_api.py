@@ -112,4 +112,5 @@ class LoremIpsumAPI(ShipwireBaseAPI):
         This function may need to be called multiple times in the
         event that the order is split.
         """
+
         raise NotImplementedError("Fake Order Placement")

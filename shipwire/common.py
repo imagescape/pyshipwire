@@ -207,15 +207,13 @@ class ShipwireBaseAPI(object):
 
     def optimal_order_splitting(self, shipping_address, cart):
         """
-        Returns a list of cart objects for the most pratical split for
-        situations when the order cannot be fulfilled from just one
-        location.  Shipwire does this to an extent in their backend,
-        but it is optimized for sending all products from one
-        location, and not optimized for shipping cost.
-        
-        The "cart" currently is just a list of product SKUs.
-        Quantities should be expressed by having the SKU appear in the
-        list multiple times.
+        Returns a SplitCart object which contains the most practical split
+        for situations when the order cannot be fulfilled from just
+        one location, and a list of SKUs that couldn't be shipped.
+
+        Shipwire does this to an extent in their backend, but it is
+        proprietary, and does not assume domestic shipping is better
+        than not splitting the order.
         """
         
         # The way this should work:
@@ -242,9 +240,46 @@ class ShipwireBaseAPI(object):
         ## a. use the algorithm described for step 1, but with
         ## warehouses that are relatively international to the
         ## shipping address.
-        
 
-        raise NotImplementedError("Order Splitting")
+        # NOTE, if there is a tie between two warehouses, the tie
+        # should be broken by shipping cost.
+
+        def cart_split(warehouse_set, sku_list):
+            """
+            Takes a list of warehouses and a cart object.  Returns a dict that
+            splits the cart, and a cart containing remaining skus.
+            """
+            ## FIXME
+            return {}, sku_list
+
+        # Generate the list of warehouses that are domestic to the
+        # shipping address, and those that are not:
+        domestic = []
+        intl = []
+        for warehouse in WAREHOUSE_CODES:
+            if is_domestic(shipping_address, warehouse):
+                domestic.append(warehouse)
+            else:
+                intl.append(warehouse)
+
+        results = {}
+        remainder = cart.sku_list
+
+        if domestic:
+            results, remainder = cart_split(domestic, remainder)
+
+        if intl:
+            intl_results, remainder = cart_split(intl, remainder)
+            for warehouse, sku_list in intl_results.items():
+                if results.has_key(key):
+                    results[warehouse] += intl_results[warehouse]
+                else:
+                    results[warehouse] = intl_results[warehouse]
+            
+        split_cart = SplitCart()
+        for warehouse, sku_list in results.items():
+            split_cart.add_cart(warehouse, CartItems(sku_list))
+        return split_cart, remainder
 
     def get_shipping_options(self, shipping_address, split_cart):
         """

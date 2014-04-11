@@ -165,9 +165,10 @@ def test_order_splitting():
     )
     
     cart = CartItems(db.keys())
-    split_cart = api.optimal_order_splitting(addr, cart)
+    split_cart, remainder = api.optimal_order_splitting(addr, cart)
 
     split = split_cart.order_split
+    assert len(remainder) == 0
     assert split.has_key("CHI")
     assert split.has_key("PHL")
     assert split.has_key("TOR")

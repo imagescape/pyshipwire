@@ -40,19 +40,29 @@ def test_bs_inventory_lookup():
     api = LoremIpsumAPI("test_account", "test_password", "test")
     db = BS_PRODUCT_DATABASE
 
-    for sku in db.keys():
-        stock_info = db[sku]["stock_info"]
-        inventory = api.inventory_lookup(sku)
-        for code in WAREHOUSE_CODES:
-            if stock_info.has_key(code):
-                assert inventory[code] is not None
-                assert inventory[code].code == sku # this is not confusing at all nope
-                assert inventory[code].quantity == stock_info[code]
-            else:
-                assert inventory[code] is None
+    sku_list = db.keys() + ["fake_sku"]
+    inventory = api.inventory_lookup(sku_list)
 
-    for value in api.inventory_lookup("fake_sku").values():
-        assert value is None
+    for sku, data in inventory.items():
+        assert db.has_key(sku) or sku == "fake_sku"
+
+        if sku == "fake_sku":
+            # assertions for a sku that is not in the database
+
+            assert len(data.keys()) > 0
+            for warehouse, entry in data.items():
+                assert entry.quantity == 0
+
+        else:
+            # assertions for a sku that is in the database
+
+            db_entry = db[sku]["stock_info"]
+            for warehouse, entry in data.items():
+                assert entry.code == sku
+                if db_entry.has_key(warehouse):
+                    assert entry.quantity == db_entry[warehouse]
+                else:
+                    assert entry.quantity == 0
 
     
 def test_cache_invalidation():
@@ -65,21 +75,21 @@ def test_cache_invalidation():
     sku = "sku_0001"
     db_record = db[sku]
 
-    first = api.inventory_lookup(sku)["CHI"].quantity
+    first = api.inventory_lookup(sku)[sku]["CHI"].quantity
     assert first == 10
 
     db_record["stock_info"]["CHI"] = 9
 
-    second = api.inventory_lookup(sku)["CHI"].quantity
+    second = api.inventory_lookup(sku)[sku]["CHI"].quantity
     assert second == 9
 
     db_record["stock_info"]["CHI"] = 3
 
-    third = api.inventory_lookup(sku, True)["CHI"].quantity
+    third = api.inventory_lookup(sku, True)[sku]["CHI"].quantity
     assert third == 9
 
     api.cache_expire = 0
-    fourth = api.inventory_lookup(sku, True)["CHI"].quantity
+    fourth = api.inventory_lookup(sku, True)[sku]["CHI"].quantity
     assert fourth == 3
     
 

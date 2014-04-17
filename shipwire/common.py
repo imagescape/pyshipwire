@@ -160,7 +160,7 @@ class ShipwireBaseAPI(object):
         self.cache = {}
         self.cache_expire = 60*5 # seconds
 
-    def __get_cached(self, product_sku):
+    def _get_cached(self, product_sku):
         """
         If the inventory info for a given product sku is present and the
         cache stamp isn't too old, return it.  If the cache stamp is
@@ -177,7 +177,7 @@ class ShipwireBaseAPI(object):
         else:
             return None
         
-    def __set_cached(self, product_sku, value):
+    def _set_cached(self, product_sku, value):
         """
         Cache inventory info for a given sku.
         """
@@ -189,21 +189,49 @@ class ShipwireBaseAPI(object):
     #------------------------------------------------------------------
     # API-inspecific methods:
 
-    def inventory_lookup(self, product_sku, estimate_ok=False):
+    def inventory_lookup(self, sku_list, estimate_ok=False):
         """
-        Connect to shipwire and find out stocking information for a given
-        product.  If estimate_ok is true, then the implementation
-        might return a cached value.
+        Pass a list of SKUs to perform an inventory lookup.
+        Results are a dictionary in the format of:
+
+        {"sku" : {"warehouse" : <Inventory>}}
         """
-        cached = self.__get_cached(product_sku)
-        if cached and estimate_ok:
-            return cached
+
+        results = {} # {"sku" : {"warehouse" : <Inventory>}}
+        missing = []
+            
+        if type(sku_list) in [str, unicode]:
+            sku_list = [sku_list]
+
+        # remove non-unique items:
+        sku_list = list(set(sku_list))
+
+        if estimate_ok:
+            for sku in sku_list:
+                entry = self._get_cached(sku)
+                if entry:
+                    results[sku] = entry
+                else:
+                    missing.append(sku)
         else:
-            inventory = [self._inventory_for_warehouse(product_sku, w) \
-                         for w in WAREHOUSE_CODES]
-            result = dict(zip(WAREHOUSE_CODES, inventory))
-            self.__set_cached(product_sku, result)
-            return result
+            missing = sku_list
+
+        if missing:
+            new_items = self._inventory_lookup(missing)
+            found = {}
+            for warehouse, inv_list in new_items.items():
+                for entry in inv_list:
+                    sku = entry.code
+                    if not found.has_key(sku):
+                        found[sku] = {}
+                    found[sku][warehouse] = entry
+                    
+            for sku, data in found.items():
+                results[sku] = data
+                self._set_cached(sku, data)
+
+        return results
+
 
     def optimal_order_splitting(self, shipping_address, cart):
         """
@@ -266,9 +294,17 @@ class ShipwireBaseAPI(object):
         remainder = cart.sku_list
 
         if domestic:
+            # The portion of the cart that can be shipped entirely
+            # from the domestic set is returned into 'results' (dict
+            # warehouse:[sku...]) or such.  Returned "remainder"
+            # contains everything else.
             results, remainder = cart_split(domestic, remainder)
 
         if intl:
+            # The portion of the cart that can be shipped entirely
+            # from international warehouses is returned into
+            # 'intl_results', if necessary.  Returned "remainder" is
+            # everything that couldn't be shipped.
             intl_results, remainder = cart_split(intl, remainder)
             for warehouse, sku_list in intl_results.items():
                 if results.has_key(key):
@@ -333,24 +369,32 @@ class ShipwireBaseAPI(object):
     #------------------------------------------------------------------
     # Backend-specific methods:
 
-    def _inventory_for_warehouse(self, product_sku, warehouse):
-        """Shipwire's api doesn't say the per-warehouse stocking information
-        if you query per product.  The solution is to query it for
-        each warehouse.  Use the "inventory_lookup" for this data in
-        agregate.
+    def _inventory_lookup(self, sku_list):
         """
-        raise NotImplementedError("Inventory Lookup")
-        pass
+        Returns inventory data for the given list of skus.  This may imply
+        multiple api calls to shipwire's api for each warehouse.  This
+        can probably be threaded, but that is outside of the scope of
+        the common api class.
+
+        This function should return a dict where each key is a
+        warehouse code, and the value is a list of Inventory object
+        instances.
+
+        Like so:
+        { "warehouse" : [<Inventory>, ...] }
+
+        """
+        raise NotImplementedError("Inventory lookup backend..")
 
     def _get_single_cart_quotes(self, ship_address, warehouse, cart):
         """
         Returns the shipping quotes for a given cart of items and warehouse.
         """
-        raise NotImplementedError("Shipping quotes for singular cart.")
+        raise NotImplementedError("Shipping quotes backend.")
 
     def _place_single_cart_order(self, ship_address, warehouse, cart, ship_method):
         """
         Places an order for a given warehouse and cart of items.  Generally
         better to call this indirectly via the "place_order" method.
         """
-        raise NotImplementedError("Place order for single cart.")
+        raise NotImplementedError("Order placement backend.")

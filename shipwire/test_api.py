@@ -68,31 +68,31 @@ class LoremIpsumAPI(ShipwireBaseAPI):
                 and server == "test"):
             raise NotImplementedError("Fake failure for fake auth.")
 
-    def _inventory_for_warehouse(self, product_sku, warehouse):
+    def _inventory_lookup(self, sku_set):
         """
         Don't call this method directly; use
-        inventory_lookup(product_skup, caching) instead!
+        inventory_lookup(product_skus, caching) instead!
 
-        Polls the stocking information for a given warehouse.  The method
-        "inventory_lookup" calls this method to build a better report,
-        so use that instead.
+        If warehouse set is None, poll for all warehouses.
         """
-        if BS_PRODUCT_DATABASE.has_key(product_sku):
-            record = BS_PRODUCT_DATABASE[product_sku]
-            try:
-                stock = record["stock_info"][warehouse]
-            except KeyError:
-                stock = 0
-            
-            if stock:
-                data = Inventory()
-                data.code = product_sku # not sure if this is correct
-                data.quantity = stock
-                return data
-            else:
-                return None
-        else:
-            return None
+
+        def fake_stock_info(warehouse, sku):
+            item = Inventory()
+            item.quantity = 0
+            item.code = sku
+
+            if BS_PRODUCT_DATABASE.has_key(sku):
+                record = BS_PRODUCT_DATABASE[sku]
+                try:
+                    item.quantity = record["stock_info"][warehouse]
+                except KeyError:
+                    pass
+            return item
+        
+        report = {}
+        for code in WAREHOUSE_CODES:
+            report[code] = [fake_stock_info(code, sku) for sku in sku_set]
+        return report
 
     def _place_single_cart_order(self, ship_address, warehouse, cart, ship_method):
         """

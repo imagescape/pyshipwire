@@ -189,6 +189,21 @@ class ShipwireBaseAPI(object):
     #------------------------------------------------------------------
     # API-inspecific methods:
 
+    def get_availability(self, sku, estimate_ok=True):
+        """
+        Returns a list of which countries for which the given sku is in
+        stock.
+        """
+        query = self.inventory_lookup([sku], estimate_ok)[sku]
+        available = []
+        for warehouse, inventory in query.items():
+            if inventory.quantity > 0:
+                available.append(warehouse)
+        
+        countries = [country_for_warehouse(code) for code in available]
+        return tuple(set(countries))
+
+
     def inventory_lookup(self, sku_list, estimate_ok=False):
         """
         Pass a list of SKUs to perform an inventory lookup.

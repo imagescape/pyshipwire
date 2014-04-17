@@ -64,7 +64,21 @@ def test_bs_inventory_lookup():
                 else:
                     assert entry.quantity == 0
 
+
+def test_get_availability():
+    """
+    Tests country availability wrapper function.
+    """
+
+    api = LoremIpsumAPI("test_account", "test_password", "test")
+    db = BS_PRODUCT_DATABASE
+
+    avail = api.get_availability("sku_0001")
+    assert avail.count("USA") == 1
+    assert avail.count("GBR") == 1
+    assert len(avail) == 2
     
+
 def test_cache_invalidation():
     """
     Tests caching for inventory lookups.

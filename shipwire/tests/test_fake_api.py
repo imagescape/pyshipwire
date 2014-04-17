@@ -197,4 +197,3 @@ def test_order_splitting():
     assert split.has_key("PHL")
     assert split.has_key("TOR")
     assert split.has_key("UK") == False
-

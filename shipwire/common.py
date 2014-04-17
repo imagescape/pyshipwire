@@ -258,55 +258,93 @@ class ShipwireBaseAPI(object):
         proprietary, and does not assume domestic shipping is better
         than not splitting the order.
         """
-        
-        # The way this should work:
 
-        # 1. Generate a subset of warehouses that are domestic to the
-        # shipping address.
-
-        ## a. for each warehouse in the subset, for each unique sku in
-        ## the cart, poll the availability of the items in the
-        ## domestic warehouse set.
-
-        ## b. determine which warehouse is able to provide the most of
-        ## the items in the cart.  Place those into a new cart (tagged
-        ## with the warehouse), subtract the quantities from the
-        ## cached inventory results for that warehouse.  Remove the
-        ## warehouse from the cached inventory results.  Repeat until
-        ## no items remaining in the cart can be satisfied by any of
-        ## the warehouses OR until there are no items remaining in the
-        ## cart.
-
-        # 2. Generate a subset of warehouses that are not domestic to the
-        # shipping address.
-
-        ## a. use the algorithm described for step 1, but with
-        ## warehouses that are relatively international to the
-        ## shipping address.
-
-        # NOTE, if there is a tie between two warehouses, the tie
-        # should be broken by shipping cost.
-
-        def cart_split(warehouse_set, sku_list):
+        def cart_split(stock, sku_req):
             """
-            Takes a list of warehouses and a cart object.  Returns a dict that
-            splits the cart, and a cart containing remaining skus.
+            Determines recusively which warehouses can fulfill most of the
+            sku_req.
             """
-            ## FIXME
-            return {}, sku_list
 
-        # Generate the list of warehouses that are domestic to the
-        # shipping address, and those that are not:
-        domestic = []
-        intl = []
-        for warehouse in WAREHOUSE_CODES:
-            if is_domestic(shipping_address, warehouse):
-                domestic.append(warehouse)
+            splits = {} # { "warehouse" : { "sku" : quantity } }
+            versions = {} # { "warehouse" : { "sku" : quantity } }
+            remainder = {} # { "sku" : quantity }
+
+            # for each warehouse, determine which subset of product
+            # can be served by it:
+            for warehouse in stock.keys():
+                versions[warehouse] = {}
+                for sku, quant in sku_req.items():
+                    try:
+                        if stock[warehouse][sku] >= quant:
+                            versions[warehouse][sku] = quant
+                    except KeyError:
+                        pass
+
+            # From the possible versions, determine which warehouse
+            # caught the most product in the order:
+            best_wh = None
+            best_ct = 0
+            for wh_code, data in versions.items():
+                count = len(data.keys())
+                if count > best_ct:
+                    best_wh = wh_code
+                    best_ct = count
+            if not best_wh:
+                # no sku:quantity in the req could be neatly served by
+                # any of the warehouses.
+                return {}, sku_req
             else:
-                intl.append(warehouse)
+                # add the best warehouse to the order split, update
+                # the remainder stocking info, and recurse on the
+                # remaining warehouses.
+                splits[best_wh] = versions[best_wh]
+                new_req = {}
+                for sku in sku_req.keys():
+                    if not versions[best_wh].has_key(sku):
+                        new_req[sku] = sku_req[sku]
+                new_stock = {}
+                for code in stock.keys():
+                    if code != best_wh:
+                        new_stock[code] = stock[code]
 
+                if len(new_req.keys()) > 0 and len(new_stock.keys()) > 0:
+                    new_split, new_remainder = cart_split(new_stock, new_req)
+                    for key, val in new_split.items():
+                        splits[key] = val
+                    return splits, new_remainder
+
+                else:
+                    return splits, new_req
+
+        def add_regional_data(stock, warehouse, inventory):
+            """
+            Used for splitting inventory_lookup into regional stocking
+            information.
+            """
+            if not stock.has_key(warehouse):
+                stock[warehouse] = {}
+            stock[warehouse][inventory.code] = inventory.quantity
+
+        # generate regional stocking info based on shipping address:
+        domestic = {}
+        intl = {}
+        query = self.inventory_lookup(cart.sku_list, estimate_ok=False)
+        for sku, data in query.items():
+            for warehouse, inventory in data.items():
+                if inventory.quantity > 0:
+                    if is_domestic(shipping_address, warehouse):
+                        add_regional_data(domestic, warehouse, inventory)
+                    else:
+                        add_regional_data(intl, warehouse, inventory)
+
+        # traveling salesman setup
         results = {}
-        remainder = cart.sku_list
+        remainder = {}
+        for sku in cart.sku_list:
+            if remainder.has_key(sku):
+                remainder[sku] += 1
+            else:
+                remainder[sku] = 1
 
         if domestic:
             # The portion of the cart that can be shipped entirely
@@ -315,18 +353,26 @@ class ShipwireBaseAPI(object):
             # contains everything else.
             results, remainder = cart_split(domestic, remainder)
 
-        if intl:
+        if remainder and intl:
             # The portion of the cart that can be shipped entirely
             # from international warehouses is returned into
             # 'intl_results', if necessary.  Returned "remainder" is
             # everything that couldn't be shipped.
             intl_results, remainder = cart_split(intl, remainder)
+
             for warehouse, sku_list in intl_results.items():
-                if results.has_key(key):
+                if results.has_key(warehouse):
                     results[warehouse] += intl_results[warehouse]
                 else:
                     results[warehouse] = intl_results[warehouse]
-            
+
+        # FIXME:
+        # 
+        # Handling for quantities that can't be served by an
+        # individual warehouse but can be either partially or fully
+        # servered by several.
+        #
+
         split_cart = SplitCart()
         for warehouse, sku_list in results.items():
             split_cart.add_cart(warehouse, CartItems(sku_list))

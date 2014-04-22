@@ -197,3 +197,47 @@ def test_order_splitting():
     assert split.has_key("PHL")
     assert split.has_key("TOR")
     assert split.has_key("UK") == False
+
+
+def test_ugly_order_splitting():
+    """
+    Test splitting when a quantity of an item can be filled by two
+    warehouses, but not by any individual warehouse.
+    """
+
+    api = LoremIpsumAPI("test_account", "test_password", "test")
+    db = BS_PRODUCT_DATABASE
+
+    addr = AddressInfo(
+        "Some Body",
+        "12345 S Someplace Rd",
+        "",
+        "Duster",
+        "IN",
+        "United States",
+        "47999",
+        "123-4567",
+        "nobody@donotreply.pleasedonotregisterthistld",
+    )
+
+    cart = CartItems()
+    cart.add_item("sku_0002", 2)
+    # the above sku has the following stocking information:
+    # "PHL" : 2
+    # "UK" : 1
+
+    split_cart, remainder = api.optimal_order_splitting(addr, cart)
+    split = split_cart.order_split
+    assert len(remainder) == 0
+    assert len(split.keys()) == 1
+    assert split.has_key("PHL")
+
+
+    # Now add another and try again:
+    cart.add_item("sku_0002", 1)
+    split_cart, remainder = api.optimal_order_splitting(addr, cart)
+    split = split_cart.order_split
+    assert len(remainder) == 0
+    assert len(split.keys()) == 2
+    assert split.has_key("PHL")
+    assert split.has_key("UK")

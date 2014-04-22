@@ -125,6 +125,8 @@ class CartItems(object):
     def __init__(self, sku_list=None):
         if sku_list is not None:
             self.sku_list = sku_list
+        else:
+            self.sku_list = []
 
     def add_item(self, sku, quantity):
         """Add some quantity of SKUs to the cart."""

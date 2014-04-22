@@ -30,3 +30,19 @@ class ShipwireAPI(ShipwireBaseAPI):
         headers = {'content-type': 'application/xml'}
         response = requests.post(uri, data=data, headers=headers)
         return response.text
+
+    def _inventory_lookup(self, sku_list):
+        """
+        Returns inventory data for the given list of skus.  This may imply
+        multiple api calls to shipwire's api for each warehouse.  This can
+        probably be threaded, but that is outside of the scope of the common
+        api class.
+
+        This function should return a dict where each key is a
+        warehouse code, and the value is a list of Inventory object
+        instances.
+
+        Like so:
+        { "warehouse" : [<Inventory>, ...] }
+        """
+        raise NotImplementedError("Inventory lookup backend..")

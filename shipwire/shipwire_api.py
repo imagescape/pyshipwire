@@ -1,4 +1,7 @@
 
+from StringIO import StringIO
+
+from lxml import etree
 import requests
 
 from shipwire.common import *
@@ -45,4 +48,49 @@ class ShipwireAPI(ShipwireBaseAPI):
         Like so:
         { "warehouse" : [<Inventory>, ...] }
         """
-        raise NotImplementedError("Inventory lookup backend..")
+
+        product_template = "<ProductCode>{0}</ProductCode>"
+        req_template = """
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE InventoryUpdateResponse SYSTEM "http://www.shipwire.com/exec/download/InventoryUpdateResponse.dtd">
+<InventoryUpdate>
+    <Username>{0}</Username>
+    <Password>{1}</Password>
+    <Server>{2}</Server>
+    <Warehouse>{3}</Warehouse>
+    {4}
+    <IncludeEmpty/>
+</InventoryUpdate>
+        """.strip()
+
+        def gen_req(warehouse, sku_list):
+            product_lines = "\n".join(
+                [product_template.format(sku) for sku in sku_list])
+            return req_template.format(
+                self.__email, 
+                self.__pass, 
+                self.__server, 
+                warehouse, 
+                product_lines)
+            
+        requests = []
+        for warehouse in WAREHOUSE_CODES:
+            requests.append(gen_req(warehouse, sku_list))
+
+        responses = [self.post_and_fetch(req, "InventoryServices.php") \
+                     for req in requests]
+
+        report = {}
+        for warehouse, raw in zip(WAREHOUSE_CODES, responses):
+            # do something handy here lol
+            fileob = StringIO(raw)
+            root = etree.parse(fileob).xpath("/InventoryUpdateResponse")[0]
+            items = []
+            for entry in root.xpath("Product"):
+                inv = Inventory()
+                inv.code = entry.attrib["code"]
+                inv.quantity = int(entry.attrib["quantity"])
+                items.append(inv)
+            report[warehouse] = items
+
+        return report

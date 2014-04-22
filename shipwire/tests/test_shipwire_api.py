@@ -1,4 +1,7 @@
 
+from StringIO import StringIO
+
+from lxml import etree
 
 from shipwire.shipwire_api import *
 from shipwire.common import *
@@ -86,62 +89,44 @@ def test_inventory_lookup():
         "123456", 
         "production")
 
-    api._add_response("""
+    for warehouse in WAREHOUSE_CODES:
+        api._add_response("""
     <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE InventoryUpdateResponse SYSTEM "http://www.shipwire.com/exec/download/InventoryUpdateResponse.dtd">
 <InventoryUpdateResponse>
-<Status>Test</Status>
-<Product code="fake_sku_0001"
-quantity="2"
-good="2"
-pending="300"
-backordered="0"
-reserved="15"
-shipping="7"
-shipped="7013"
-consuming="0"
-consumed="0"
-creating="0"
-created="0"
-availableDate="2012-01-19"
-shippedLastDay="13"
-shippedLastWeek="84"
-shippedLast4Weeks="401"
-orderedLastDay="15"
-orderedLastWeek="99"
-orderedLast4Weeks="416" />
-<Product code="fake_sku_0002"
-quantity="2"
-good="2"
-pending="500"
-backordered="0"
-reserved="17"
-shipping="0"
-shipped="1997"
-consuming="0"
-consumed="0"
-creating="0"
-created="0"
-availableDate="2012-02-21"
-shippedLastDay="11"
-shippedLastWeek="74"
-shippedLast4Weeks="221"
-orderedLastDay="19"
-orderedLastWeek="90"
-orderedLast4Weeks="242" />
-<TotalProducts>2</TotalProducts>
-<ProcessingTime units="ms">221</ProcessingTime>
+  <Status>0</Status>
+  <Product code="fake_sku_0001" quantity="2" pending="0" good="2" backordered="0" reserved="0" shipping="0" shipped="18" consuming="0" creating="0" consumed="0" created="0" shippedLastDay="0" shippedLastWeek="0" shippedLast4Weeks="0" orderedLastDay="0" orderedLastWeek="0" orderedLast4Weeks="0"/>
+  <Product code="fake_sku_0002" quantity="2" pending="0" good="2" backordered="0" reserved="4" shipping="1" shipped="37" consuming="0" creating="0" consumed="0" created="0" shippedLastDay="0" shippedLastWeek="3" shippedLast4Weeks="12" orderedLastDay="0" orderedLastWeek="3" orderedLast4Weeks="13"/>
+  <TotalProducts>2</TotalProducts>
+  <ProcessingTime units="ms" host="w1.lwb.shipwire.com">53</ProcessingTime>
 </InventoryUpdateResponse>
-    """.strip())
+        """.strip())
 
     def request_check(api, post_xml, api_uri_part):
-        pass
+        # this will blow up if the request is badly formatted
+        fileob = StringIO(post_xml)
+        root = etree.parse(fileob).xpath("/InventoryUpdate")[0]
+        user = root.xpath("Username")[0].text
+        passwd = root.xpath("Password")[0].text
+        server = root.xpath("Server")[0].text
+        warehouse = root.xpath("Warehouse")[0].text
+        codes = root.xpath("ProductCode")
+        assert user == api._ShipwireAPI__email
+        assert passwd == api._ShipwireAPI__pass
+        assert server == api._ShipwireAPI__server
+        assert warehouse in WAREHOUSE_CODES
+
+        assert len(codes) == 2
+        for code in codes:
+            assert code.text in ["fake_sku_0001", "fake_sku_0002"]
+        
     api.test_hook = request_check
 
     sku_set = ["fake_sku_0001", "fake_sku_0002"]
     report = api._inventory_lookup(sku_set)
-    assert api.requests_made == 1
+    assert api.requests_made > 0
     assert type(report) == dict
+    assert len(report.keys()) > 0
     for warehouse, stock in report.items():
         assert warehouse in WAREHOUSE_CODES
         assert type(stock) == list

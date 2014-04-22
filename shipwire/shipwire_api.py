@@ -1,5 +1,7 @@
 
 from StringIO import StringIO
+from threading import Thread
+import time
 
 from lxml import etree
 import requests
@@ -77,13 +79,34 @@ class ShipwireAPI(ShipwireBaseAPI):
         for warehouse in WAREHOUSE_CODES:
             requests.append(gen_req(warehouse, sku_list))
 
-        responses = [self.post_and_fetch(req, "InventoryServices.php") \
-                     for req in requests]
+        class ReqThread(Thread):
+            """
+            Performing the requests one after another is too slow.  This class
+            wraps the post_and_fetch call so that several can be ran
+            in parallel.
+            """
+            def __init__(self, api, request):
+                self.data = ""
+                self.req = request
+                self.api = api
+                Thread.__init__(self)
+            def run(self):
+                self.data = self.api.post_and_fetch(
+                    self.req, "InventoryServices.php")
+
+        start_time = time.time()
+        pool = [ReqThread(self, req) for req in requests]
+        for thread in pool:
+            thread.start()
+        for thread in pool:
+            thread.join()
+        total = time.time()-start_time
+        responses = [thread.data for thread in pool]
 
         report = {}
         for warehouse, raw in zip(WAREHOUSE_CODES, responses):
-            # do something handy here lol
-            fileob = StringIO(raw)
+            # note that lxml blows up when you pass it unicode
+            fileob = StringIO(str(raw))
             root = etree.parse(fileob).xpath("/InventoryUpdateResponse")[0]
             items = []
             for entry in root.xpath("Product"):

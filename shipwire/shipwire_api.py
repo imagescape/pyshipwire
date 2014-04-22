@@ -21,6 +21,7 @@ class ShipwireAPI(ShipwireBaseAPI):
         self.__pass = password
         self.__server = server
         assert server in ["production", "test"]
+        ShipwireBaseAPI.__init__(self, account_email, password, server)
 
     def post_and_fetch(self, post_xml, api_uri_part):
         """

@@ -93,6 +93,49 @@ def is_domestic(shipping_address, warehouse_code):
         return False
 
 
+EU_COUNTRIES = (
+    "Austria",
+    "Belgium",
+    "Bulgaria",
+    "Croatia",
+    "Cyprus",
+    "Czech Republic",
+    "Denmark",
+    "Estonia",
+    "Finland",
+    "France",
+    "Germany",
+    "Greece",
+    "Hungary",
+    "Ireland",
+    "Italy",
+    "Latvia",
+    "Lithuania",
+    "Luxembourg",
+    "Malta",
+    "Netherlands",
+    "Poland",
+    "Portugal",
+    "Romania",
+    "Slovakia",
+    "Slovenia",
+    "Spain",
+    "Sweden",
+    "United Kingdom",
+)
+EU_ISO_CODES = tuple([iso_for_country(n) for n in EU_COUNTRIES])
+
+
+def is_eu(country):
+    """
+    Returns True if the country is a member of the European Union.
+    """
+    if iso_for_country(country) in EU_ISO_CODES:
+        return True
+    else:
+        return False
+
+
 class AddressInfo(object):
     """
     Represents a shipping address.

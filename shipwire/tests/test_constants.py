@@ -28,3 +28,22 @@ def test_shipping_options():
     assert SHIPPING.has_key("INTL")
     assert SHIPPING.has_key("PL-INTL")
     assert SHIPPING.has_key("PM-INTL")
+
+
+def test_eu():
+    """
+    Test the is_eu function.
+    """
+    for country in EU_COUNTRIES: 
+        assert is_eu(country)
+
+    not_eu = [
+        "United States",
+        "Canada",
+        "The Moon",
+        "Peru",
+        "Hutzselvania",
+        "Madagascar",
+    ]
+    for country in not_eu:
+        assert not is_eu(country)

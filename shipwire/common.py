@@ -151,6 +151,31 @@ class AddressInfo(object):
         self.phone = phone
         self.email = email
 
+    def to_xml(self, mode="ship"):
+        """
+        Returns the xml representation of the cart, as used by the Shipwire
+        API.
+        """
+        template = """
+<AddressInfo type="{0}">
+  <Address1>{1}</Address1>
+  <Address2>{2}</Address2>
+  <City>{3}</City>
+  <State>{4}</State>
+  <Country>{5}</Country>
+  <Zip>{6}</Zip>
+</AddressInfo>
+        """.strip()
+        return template.format(
+            mode,
+            self.addr1,
+            self.addr2,
+            self.city,
+            self.state,
+            self.country,
+            self.zipcode
+        ) + "\n"
+            
 
 class Inventory(object):
     """
@@ -175,6 +200,33 @@ class CartItems(object):
         """Add some quantity of SKUs to the cart."""
         for i in range(quantity):
             self.sku_list.append(sku)
+
+    def remove_item(self, sku, quantity):
+        """Remove some quantity of SKUs from the cart."""
+        for i in range(quantity):
+            if self.sku_list.count(sku):
+                self.sku_list.pop(self.sku_list.index(sku))
+
+    def to_xml(self):
+        """XML representation of the cart used by the shipwire API."""
+        template = """
+<Item num="{0}">
+  <Code>{1}</Code>
+  <Quantity>{2}</Quantity>
+</Item>
+        """.strip()
+        items = {}
+        for sku in self.sku_list:
+            if not items.has_key(sku):
+                items[sku] = 1
+            else:
+                items[sku] += 1
+        xml = ""
+        counter = 0
+        for sku, quantity in items.items():
+            xml += template.format(counter, sku, quantity) + "\n"
+            counter += 1
+        return xml
 
 
 class SplitCart(object):

@@ -37,6 +37,45 @@ class ShipwireAPI(ShipwireBaseAPI):
         response = requests.post(uri, data=data, headers=headers)
         return response.text
 
+    def _get_single_cart_quotes(self, ship_address, warehouse, cart):
+        """
+        Returns the shipping options in the form of:
+        {"shipping_code" : ("human_readable", quote)}.
+        """
+        req_template = """
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE RateRequest SYSTEM "http://www.shipwire.com/exec/download/RateRequest.dtd">
+<RateRequest>
+ <Username>{0}</Username>
+ <Password>{1}</Password>
+ <Server>{2}</Server>
+ <Order id="{3}">{4}</Order>
+</RateRequest>
+""".strip()
+        request = req_template.format(
+            self.__email,
+            self.__pass,
+            self.__server,
+            0,
+            ship_address.to_xml() + cart.to_xml())
+
+        response = self.post_and_fetch(
+            request, "RateServices.php")
+        fileob = StringIO(str(response))
+        root = etree.parse(fileob).xpath("/RateResponse")[0]
+        assert root.xpath("Status")[0].text == "OK"
+        
+        report = {}
+        quotes = root.xpath("Order/Quotes/Quote")
+        for quote in quotes:
+            code = quote.attrib["method"]
+            name = SHIPPING[code]
+            cost = float(quote.xpath("Cost")[0].text)
+            report[code] = (name, cost)
+
+        return report
+
+
     def _inventory_lookup(self, sku_list):
         """
         Returns inventory data for the given list of skus.  This may imply

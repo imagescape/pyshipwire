@@ -133,3 +133,159 @@ def test_inventory_lookup():
         for inventory in stock:
             assert inventory.code in sku_set
             assert inventory.quantity == 2
+
+
+def test_shipping_query():
+    """
+    Tests ShipwireAPI._get_single_cart_quotes.
+    """
+    api = MutedShipwireAPI(
+        "nobody@donotreply.pleasedonotregisterthistld",
+        "123456", 
+        "production")
+
+    api._add_response("""
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE 
+RateResponse SYSTEM "http://www.shipwire.com/exec/download/RateResponse.dtd">
+<RateResponse>
+  <Status>OK</Status>
+  <Order sequence="1">
+    <Quotes>
+      <Quote method="GD">
+        <Warehouse>Chicago</Warehouse>
+        <Service deliveryConfirmation="YES" trackable="YES"
+        signatureRequired="NO">FedEx Ground</Service>
+        <CarrierCode>FDX GD</CarrierCode>
+        <Cost currency="USD" converted="NO" originalCurrency="USD"
+        originalCost="34.90">34.90</Cost>
+        <Subtotals>
+          <Subtotal type="Freight">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="25.90">25.90</Cost>
+          </Subtotal>
+          <Subtotal type="Insurance">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="9.00">9.00</Cost>
+          </Subtotal>
+          <Subtotal type="Packaging">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="0.55">0.55</Cost>
+          </Subtotal>
+          <Subtotal type="Handling" includedInCost="NO">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="0.00">0.00</Cost>
+          </Subtotal>
+        </Subtotals>
+        <DeliveryEstimate>
+          <Minimum units="days">1</Minimum>
+          <Maximum units="days">5</Maximum>
+        </DeliveryEstimate>
+      </Quote>
+      <Quote method="2D">
+        <Warehouse>Chicago</Warehouse>
+        <Service deliveryConfirmation="YES" trackable="YES"
+        signatureRequired="NO">UPS Second Day Air</Service>
+        <CarrierCode>UPS 2D</CarrierCode>
+        <Cost currency="USD" converted="NO" originalCurrency="USD"
+        originalCost="98.71">98.71</Cost>
+        <Subtotals>
+          <Subtotal type="Freight">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="88.96">88.96</Cost>
+          </Subtotal>
+          <Subtotal type="Insurance">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="9.75">9.75</Cost>
+          </Subtotal>
+          <Subtotal type="Packaging">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="0.56">0.56</Cost>
+          </Subtotal>
+          <Subtotal type="Handling" includedInCost="NO">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="0.00">0.00</Cost>
+          </Subtotal>
+        </Subtotals>
+        <DeliveryEstimate>
+          <Minimum units="days">2</Minimum>
+          <Maximum units="days">2</Maximum>
+        </DeliveryEstimate>
+      </Quote>
+      <Quote method="1D">
+        <Warehouse>Chicago</Warehouse>
+        <Service deliveryConfirmation="YES" trackable="YES"
+        signatureRequired="NO">USPS Express Mail</Service>
+        <CarrierCode>USPS XP</CarrierCode>
+        <Cost currency="USD" converted="NO" originalCurrency="USD"
+        originalCost="141.89">141.89</Cost>
+        <Subtotals>
+          <Subtotal type="Freight">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="135.14">135.14</Cost>
+          </Subtotal>
+          <Subtotal type="Insurance">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="6.75">6.75</Cost>
+          </Subtotal>
+          <Subtotal type="Packaging">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="0.55">0.55</Cost>
+          </Subtotal>
+          <Subtotal type="Handling" includedInCost="NO">
+            <Cost currency="USD" converted="NO" originalCurrency="USD"
+            originalCost="0.00">0.00</Cost>
+          </Subtotal>
+        </Subtotals>
+        <DeliveryEstimate>
+          <Minimum units="days">1</Minimum>
+          <Maximum units="days">1</Maximum>
+        </DeliveryEstimate>
+      </Quote>
+    </Quotes>
+    <Warnings>
+      <Warning>Order was marked residential; now marked
+      commercial</Warning>
+    </Warnings>
+  </Order>
+  <ProcessingTime units="ms" host="w1.lwb.shipwire.com">
+  790</ProcessingTime>
+</RateResponse>
+        """.strip())
+
+    def request_check(api, post_xml, api_uri_part):
+        # this will blow up if the request is badly formatted
+        fileob = StringIO(post_xml)
+        root = etree.parse(fileob).xpath("/RateRequest")[0]
+        user = root.xpath("Username")[0].text
+        passwd = root.xpath("Password")[0].text
+        server = root.xpath("Server")[0].text
+        order = root.xpath("Order")[0]
+        addr = order.xpath("AddressInfo")[0]
+        items = order.xpath("Item")
+        assert len(items) == 2
+
+    api.test_hook = request_check
+
+    addr = AddressInfo(
+        "Some Body",
+        "12345 S Someplace Rd",
+        "",
+        "Duster",
+        "IN",
+        "United States",
+        "47999",
+        "123-4567",
+        "nobody@donotreply.pleasedonotregisterthistld",
+    )
+    warehouse = "CHI"
+    cart = CartItems()
+    cart.add_item("fake_sku_1", 1)
+    cart.add_item("fake_sku_2", 10)
+
+    report = api._get_single_cart_quotes(addr, warehouse, cart)
+    for code, data in report.items():
+        assert SHIPPING.has_key(code)
+        assert SHIPPING[code] == data[0]
+        assert data[1] > 0
+

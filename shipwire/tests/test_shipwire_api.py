@@ -289,3 +289,10 @@ RateResponse SYSTEM "http://www.shipwire.com/exec/download/RateResponse.dtd">
         assert SHIPPING[code] == data[0]
         assert data[1] > 0
 
+
+def test_order_placement():
+    """
+    Tests ShipwireAPI._place_single_cart_order.
+    """
+    assert False
+

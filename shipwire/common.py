@@ -158,22 +158,28 @@ class AddressInfo(object):
         """
         template = """
 <AddressInfo type="{0}">
-  <Address1>{1}</Address1>
-  <Address2>{2}</Address2>
-  <City>{3}</City>
-  <State>{4}</State>
-  <Country>{5}</Country>
-  <Zip>{6}</Zip>
+  <Name><Full>{1}</Full></Name>
+  <Address1>{2}</Address1>
+  <Address2>{3}</Address2>
+  <City>{4}</City>
+  <State>{5}</State>
+  <Country>{6}</Country>
+  <Zip>{7}</Zip>
+  <Phone>{8}</Phone>
+  <Email>{9}</Email>
 </AddressInfo>
         """.strip()
         return template.format(
             mode,
+            self.name,
             self.addr1,
             self.addr2,
             self.city,
             self.state,
             self.country,
-            self.zipcode
+            self.zipcode,
+            self.phone,
+            self.email,
         ) + "\n"
             
 

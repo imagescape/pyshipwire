@@ -37,6 +37,48 @@ class ShipwireAPI(ShipwireBaseAPI):
         response = requests.post(uri, data=data, headers=headers)
         return response.text
 
+    def _place_single_cart_order(self, order_num, ship_address, warehouse, cart, ship_method):
+        """
+        Places an order for a given warehouse and cart of items.  Generally
+        better to call this indirectly via the "place_order" method.
+        Returns (status_code, order_number, transaction_id).
+        """
+        req_template = """
+<!DOCTYPE OrderList SYSTEM "http://www.shipwire.com/exec/download/OrderList.dtd">
+<OrderList>
+ <Username>{0}</Username>
+ <Password>{1}</Password>
+ <Server>{2}</Server>
+ <Order id="{3}">
+   <Warehouse>{4}</Warehouse>
+   <SameDay>NOT REQUESTED</SameDay>
+   {5}
+   <Shipping>{6}</Shipping>
+   {7}
+ </Order>
+</OrderList>
+""".strip()
+        addr = ship_address.to_xml()
+        items = cart.to_xml()
+        request = req_template.format(
+            self.__email,
+            self.__pass,
+            self.__server,
+            order_num,
+            warehouse,
+            addr,
+            ship_method,
+            items)
+
+        response = self.post_and_fetch(request, "FulfillmentServices.php")
+        fileob = StringIO(str(response))
+        root = etree.parse(fileob).xpath("/SubmitOrderResponse")[0]
+        order = root.xpath("OrderInformation/Order")[0]
+        order_num = order.attrib["number"]
+        status = order.attrib["status"]
+        trans_id = order.attrib["id"]
+        return (status, order_num, trans_id)
+
     def _get_single_cart_quotes(self, ship_address, warehouse, cart):
         """
         Returns the shipping options in the form of:

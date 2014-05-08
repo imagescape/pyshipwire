@@ -556,7 +556,7 @@ class ShipwireBaseAPI(object):
         """
         raise NotImplementedError("Shipping quotes backend.")
 
-    def _place_single_cart_order(self, ship_address, warehouse, cart, ship_method):
+    def _place_single_cart_order(self, order_num, ship_address, warehouse, cart, ship_method):
         """
         Places an order for a given warehouse and cart of items.  Generally
         better to call this indirectly via the "place_order" method.

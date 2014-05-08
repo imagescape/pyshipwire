@@ -294,5 +294,75 @@ def test_order_placement():
     """
     Tests ShipwireAPI._place_single_cart_order.
     """
-    assert False
+    api = MutedShipwireAPI(
+        "nobody@donotreply.pleasedonotregisterthistld",
+        "123456", 
+        "production")
+
+    api._add_response("""
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE SubmitOrderResponse SYSTEM "http://www.shipwire.com/exec/download/SubmitOrderResponse.dtd">
+<SubmitOrderResponse>
+  <Status>0</Status>
+  <TotalOrders>1</TotalOrders>
+  <TotalItems>1</TotalItems>
+  <TransactionId>1399577016-732240-1</TransactionId>
+  <OrderInformation>
+    <Order number="testorder-14900" id="1399577016-732240-1" status="accepted">
+      <WarningList>
+        <Warning>
+          <![CDATA[Order was marked residential; now marked commercial]]>
+        </Warning>
+      </WarningList>
+      <Shipping>
+        <Warehouse>Philadelphia</Warehouse>
+        <Service>USPS First-Class Mail Parcel + Delivery Confirmation</Service>
+        <Cost>3.58</Cost>
+      </Shipping>
+    </Order>
+  </OrderInformation>
+  <ProcessingTime units="ms" host="w2.lwb.shipwire.com">3296</ProcessingTime>
+</SubmitOrderResponse>
+    """.strip())
+
+    def request_check(api, post_xml, api_uri_part):
+        # this will blow up if the request is badly formatted
+        fileob = StringIO(post_xml)
+        root = etree.parse(fileob).xpath("/OrderList")[0]
+        user = root.xpath("Username")[0].text
+        passwd = root.xpath("Password")[0].text
+        server = root.xpath("Server")[0].text
+        order = root.xpath("Order")[0]
+        addr = order.xpath("AddressInfo")[0]
+        warehouse = order.xpath("Warehouse")[0]
+        sameday = order.xpath("SameDay")[0]
+        method = order.xpath("Shipping")[0]
+        items = order.xpath("Item")
+        assert len(items) == 1
+
+    api.test_hook = request_check
+
+    addr = AddressInfo(
+        "Some Body",
+        "12345 S Someplace Rd",
+        "",
+        "Duster",
+        "IN",
+        "United States",
+        "47999",
+        "123-4567",
+        "nobody@donotreply.pleasedonotregisterthistld",
+    )
+    warehouse = "PHL"
+    ship_method = "GD"
+    cart = CartItems()
+    cart.add_item("fake_sku_1", 1)
+    order_num = "testorder"
+
+    status_code, order_number, transaction_id = api._place_single_cart_order(
+        order_num, addr, warehouse, cart, ship_method)
+
+    assert status_code == "accepted"
+    assert order_number == "testorder-14900" # hard coded in the response
+    assert transaction_id == "1399577016-732240-1"
 

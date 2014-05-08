@@ -94,15 +94,17 @@ class LoremIpsumAPI(ShipwireBaseAPI):
             report[code] = [fake_stock_info(code, sku) for sku in sku_set]
         return report
 
-    def _place_single_cart_order(self, ship_address, warehouse, cart, ship_method):
+    def _place_single_cart_order(self, order_number, ship_address, warehouse, cart, ship_method):
         """
         Don't call this method directly; use
         place_order(shipping_address, split_cart) instead!
 
         Places an order for a given warehouse and cart of items.  Generally
         better to call this indirectly via the "place_order" method.
+
+        Returns (status_code, order_number, transaction_id).
         """
-        return True
+        return ("accepted", order_number, "fake_transaction_id")
 
     def _get_single_cart_quotes(self, ship_address, warehouse, cart):
         """

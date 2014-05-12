@@ -8,8 +8,11 @@ setup(name="pyshipwire",
       author_email="aeva@alephobjects.com",
       license="GPLv3",
       packages=["shipwire"],
+      package_data={'': ['countries.csv']},
       zip_safe=False,
 
       install_requires = [
           "requests",
+          "lxml", 
+          "BeautifulSoup",
         ])
